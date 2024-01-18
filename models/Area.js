@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const ParkingSpace = require('./ParkingSpace'); // Assuming you have a ParkingSpace model
+const ParkingSpace = require('./Space'); // Assuming you have a ParkingSpace model
 
 // Define the ParkingArea schema
 const parkingAreaSchema = new mongoose.Schema({

@@ -1,14 +1,39 @@
 const mongoose = require('mongoose');
 
-// Define the ParkingSpace schema
 const parkingSpaceSchema = new mongoose.Schema({
-  name: {
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Owner',
+    required: true,
+  },
+  parkingNumber: {
     type: String,
     required: true,
-    unique: true,
   },
-  location: {
+  parkingAreaDescription: {
     type: String,
+    required: true,
+  },
+  previousBookings: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Booking',
+    },
+  ],
+  hourlyCost: {
+    type: Number,
+    required: true,
+  },
+  dailyCost: {
+    type: Number,
+    required: true,
+  },
+  weeklyCost: {
+    type: Number,
+    required: true,
+  },
+  monthlyCost: {
+    type: Number,
     required: true,
   },
   isOccupied: {
@@ -17,10 +42,27 @@ const parkingSpaceSchema = new mongoose.Schema({
   },
   occupant: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Assuming you have a User model for occupants
+    ref: 'Tenant',
     default: null,
+  },
+  latitude: {
+    type: Number,
+    required: true,
+  },
+  longitude: {
+    type: Number,
+    required: true,
+  },
+  address: {
+    type: String,
+    required: true,
+  },
+  parkingSpaceImage: {
+    type: String,
+    required:true,
   },
 });
 
-// Create and export the ParkingSpace model
-module.exports=mongoose.model('Space', parkingSpaceSchema);
+const ParkingSpace = mongoose.model('ParkingSpace', parkingSpaceSchema);
+
+module.exports = ParkingSpace;
