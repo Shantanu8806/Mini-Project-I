@@ -1,4 +1,4 @@
-const ParkingArea = require('../models/parkingArea');
+const ParkingArea = require('../models/Area');
 
 // Controller function for admin to add a parking area
 const addParkingArea = async (req, res) => {

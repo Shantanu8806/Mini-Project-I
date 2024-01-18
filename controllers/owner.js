@@ -1,16 +1,19 @@
-const ParkingSpace = require('../models/parkingSpace');
-const ParkingBooking = require('../models/parkingBooking');
+const ParkingSpace = require('../models/Space');
+const ParkingBooking = require('../models/Booking');
 
 // Controller function for owner to verify payment and update parking space status
 const verifyPaymentAndSetOccupied = async (req, res) => {
   try {
     const { bookingId, paymentScreenshot } = req.body;
 
-    // Find the booking
-    const booking = await ParkingBooking.findById(bookingId);
+    // Find the booking with 'Pending' status
+    const booking = await ParkingBooking.findOne({
+      _id: bookingId,
+      status: 'Pending',
+    });
 
     if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ error: 'Booking not found or already approved' });
     }
 
     // Perform payment verification logic here (e.g., compare payment screenshot)

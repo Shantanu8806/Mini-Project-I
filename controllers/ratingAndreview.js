@@ -1,5 +1,5 @@
 const ParkingSpace = require('../models/parkingSpace');
-const RatingAndReview = require('../models/ratingAndReview');
+const RatingAndReview = require('../models/RatingAndReview');
 const User = require('../models/user');
 
 // Controller function for users to give ratings and reviews for a parking space
