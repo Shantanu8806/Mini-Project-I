@@ -3,12 +3,6 @@ const ParkingBooking = require('../models/Booking');
 const ParkingSpace = require('../models/Space');
 
 // Configure Cloudinary with your credentials
-cloudinary.config({
-  cloud_name: 'dnmlmaz3l',
-  api_key: '164551416158321',
-  api_secret: 'zeBaNAboNedbnADJNXAA_QrJ2eE',
-});
-
 // Controller function for a tenant booking a parking space
 const bookParkingSpace = async (req, res) => {
   try {
