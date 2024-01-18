@@ -3,11 +3,6 @@ const cloudinary = require('cloudinary').v2; // Make sure to install the 'cloudi
 const Owner = require('../models/Owner');
 const Tenant = require('../models/Tenant');
 const uploadImageToCloudinary = require('../config/cloudinary');
-cloudinary.config({
-  cloud_name: 'dnmlmaz3l',
-  api_key: '164551416158321',
-  api_secret: 'zeBaNAboNedbnADJNXAA_QrJ2eE',
-});
 
 const signUpOwner = async (req, res) => {
   try {
