@@ -1,0 +1,14 @@
+/* Grid.css */
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Creates five equal columns */
+    gap: 30px; /* Adjust the gap between columns if needed */
+  }
+  
+  .grid-item {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
+  
