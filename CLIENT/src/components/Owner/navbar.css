@@ -1,7 +1,0 @@
-nav a.active {
-    border-bottom: 2px solid white;
-}
-.Backg{
-    background: rgb(2,0,36);
-    background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(88,49,133,1) 0%, rgba(94,56,182,1) 55%, rgba(13,8,113,1) 100%, rgba(14,9,121,1) 100%, rgba(0,212,255,1) 100%);
-}
