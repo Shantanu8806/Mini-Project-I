@@ -6,7 +6,7 @@ import mapboxgl from 'mapbox-gl';
 
 // Replace 'YOUR_MAPBOX_TOKEN' with your actual Mapbox access token
 
-const AddParkingSpace = () => {
+const AddParkingSpace = ({logged,user,setUser,setLogged}) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [mapboxToken, setMapboxToken] = useState('');
@@ -27,6 +27,12 @@ const AddParkingSpace = () => {
   const [uploadedImage, setUploadedImage] = useState(null);
 
   useEffect(() => {
+    if (!logged) {
+      navigate('/login/owner');
+    }
+    if(user!=='Owner'){
+      navigate('/login/owner');
+    }
     const token = sessionStorage.getItem('token');
     if (token) {
       // Decode the token to get the ownerId
@@ -49,7 +55,7 @@ const AddParkingSpace = () => {
     } else {
       setUploadedImage(null);
     }
-  }, [formData.parkingSpaceImage, navigate]);
+  }, [formData.parkingSpaceImage, navigate,user,logged]);
 
   useEffect(() => {
     const initializeMap = () => {
