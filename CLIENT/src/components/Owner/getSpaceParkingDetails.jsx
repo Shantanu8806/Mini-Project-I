@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-
-const ParkingSpaceDetails = () => {
+import { useNavigate } from 'react-router-dom';
+const ParkingSpaceDetails = ({logged,user,setUser,setLogged}) => {
   const { spaceId } = useParams();
   const [spaceDetails, setSpaceDetails] = useState({});
   const [latestBooking, setLatestBooking] = useState(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
+    if (!logged) {
+      navigate('/login/owner');
+    }
+    if(user!=='Owner'){
+      navigate('/login/owner');
+    }
     const fetchParkingSpaceDetails = async () => {
       try {
         const response = await axios.get(`http://localhost:4000/api/v1/parking-space/spaceDetails/${spaceId}`);
@@ -30,7 +36,7 @@ const ParkingSpaceDetails = () => {
 
     fetchParkingSpaceDetails();
     fetchLatestBooking();
-  }, [spaceId]);
+  }, [spaceId,user,logged,navigate]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
