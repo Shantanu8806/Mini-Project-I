@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
 import { Link } from 'react-router-dom';
-const TenantDashboard = () => {
+import { useNavigate } from 'react-router-dom';
+const TenantDashboard = ({logged,user,setUser,setLogged}) => {
+  const navigate = useNavigate();
   const [mapboxToken, setMapboxToken] = useState('');
   const [selectedParkingSpace, setSelectedParkingSpace] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -10,6 +12,12 @@ const TenantDashboard = () => {
   const [parkingSpaces, setParkingSpaces] = useState([]);
 
   useEffect(() => {
+    if (!logged) {
+      navigate('/login/tenant');
+    }
+    if(user!=='Tenant'){
+      navigate('/login/tenant');
+    }
     const fetchMapboxToken = async () => {
       try {
         const response = await axios.get('http://localhost:4000/api/v1/mapbox/mapbox-token');
@@ -63,7 +71,7 @@ const TenantDashboard = () => {
     };
 
     fetchLocationAndParkingSpaces();
-  }, []);
+  }, [logged,user,navigate]);
 
   useEffect(() => {
     if (!mapboxToken || !userCoordinates) {
@@ -97,6 +105,7 @@ const TenantDashboard = () => {
   const handleParkingSpaceClick = async (parkingSpace) => {
     try {
       const response = await axios.get(`http://localhost:4000/api/v1/parking-space/spaceDetails/${parkingSpace._id}`);
+      console.log(response.data.parkingSpaceDetails);
       console.log(parkingSpace);
       setSelectedParkingSpace(parkingSpace);
       setShowModal(true);
