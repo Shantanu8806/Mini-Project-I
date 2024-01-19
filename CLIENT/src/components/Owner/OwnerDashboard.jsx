@@ -3,17 +3,25 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import mapboxgl from 'mapbox-gl';
-
+import { useNavigate } from 'react-router-dom';
 // Replace 'YOUR_MAPBOX_TOKEN' with your actual Mapbox access token
 
 
-const OwnerDashboard = ({logged,user}) => {
+const OwnerDashboard = ({logged,user,setUser,setLogged}) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [mapboxToken, setMapboxToken] = useState('');
   const [registeredSpaces, setRegisteredSpaces] = useState([]);
   const [currentLocation, setCurrentLocation] = useState(null);
-
+  
   useEffect(() => {
+    console.log(logged,user);
+    if (!logged) {
+      navigate('/login/owner');
+    }
+    if(user!=='Owner'){
+      navigate('/login/owner');
+    }
     const fetchMapboxToken = async () => {
       try {
         const response = await axios.get('http://localhost:4000/api/v1/mapbox/mapbox-token');
@@ -68,7 +76,7 @@ const OwnerDashboard = ({logged,user}) => {
     fetchCurrentLocation();
     fetchMapboxToken();
     fetchRegisteredSpaces();
-  }, []);
+  }, [logged,user,navigate]);
 
   useEffect(() => {
     if (!mapboxToken || !currentLocation) {
