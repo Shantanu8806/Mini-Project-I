@@ -203,7 +203,7 @@ const Booking = ({ logged, user, setUser, setLogged }) => {
 
   const initiateBookingAfterPayment = async () => {
     try {
-      navigate('/tenantdashboard');
+      navigate('/tenant-dashboard');
       toast.success("Payment Successful");
       toast.success("Parking Space Booked Successfully");
     } catch (error) {
@@ -237,7 +237,23 @@ const Booking = ({ logged, user, setUser, setLogged }) => {
         description: "Razorpay tutorial",
         image: "https://res.cloudinary.com/dnmlmaz3l/image/upload/v1704824872/Parking/ef9oahebfnru5ca35teh.jpg",
         order_id: order.id,
-        callback_url: `http://localhost:4000/api/v1/booking/paymentVerification?bookingData=${encodedBookingData}`,
+        handler: async function (response) {
+          const body = {
+            ...response,
+          };
+  
+          try {
+            const verificationUrl = `http://localhost:4000/api/v1/booking/paymentVerification?bookingData=${encodedBookingData}`;
+            const validateRes = await axios.post(verificationUrl, body);
+            console.log(validateRes.data); // Log the server response
+  
+            // Initiate booking after payment
+            await initiateBookingAfterPayment();
+          } catch (error) {
+            console.error('Error during payment verification and booking initiation:', error);
+            toast.error("Error during payment verification and booking initiation");
+          }
+        },
         prefill: {
           name: "Shantanu kantak",
           email: "kantakshantanu20@gmail.com",
@@ -272,6 +288,7 @@ const Booking = ({ logged, user, setUser, setLogged }) => {
       toast.error("Error during Razorpay checkout");
     }
   };
+  
   
 
   const handleProceedToPayment = async () => {
