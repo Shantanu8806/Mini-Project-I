@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const ParkingBooking = require('../models/Booking');
 const Payment = require('../models/Payment');
+const Tenant = require('../models/Tenant');
 const { calculateTotalTimeExpiresAt } = require('../utils/bookingUtils'); // Import utility to calculate total time expiry (provided below)
 const Parkingspace = require('../models/Space');
 const initiateBookingAfterPayment = async (req, res) => {
@@ -24,18 +25,8 @@ const initiateBookingAfterPayment = async (req, res) => {
       const bookingData = JSON.parse(decodeURIComponent(bookingDataString));
 
       // Now you can use the bookingData in your logic
-      const { tenantId, parkingSpaceId, typeofBooking, totalTimeInHours } = bookingData;
+      const { tenantId, parkingSpaceId, typeofBooking, totalTimeInHours,bookingCost } = bookingData;
       console.log('Booking data:', bookingData);
-
-      // Check if the tenant already has an existing booking for the specified time
-      const existingBooking = await ParkingBooking.findOne({
-        tenant: tenantId,
-        status: 'Active',
-      });
-
-      if (existingBooking) {
-        return res.status(400).json({ success: false, error: 'You already have an active booking' });
-      }
 
       // Check if the parking space exists
       const parkingSpace = await Parkingspace.findById(parkingSpaceId);
@@ -50,6 +41,7 @@ const initiateBookingAfterPayment = async (req, res) => {
 
       // Create a new parking booking
       const newBooking = new ParkingBooking({
+        amountPaid:bookingCost,
         tenant: tenantId,
         parkingSpace: parkingSpaceId,
         typeofBooking,
@@ -82,12 +74,20 @@ const getActiveBookingsByTenantId = async (req, res) => {
   const { tenantId } = req.query; // Get tenantId from query parameters
 
   try {
+    // Check if the tenant exists
+    const tenantExists = await Tenant.exists({ _id: tenantId });
+
+    if (!tenantExists) {
+      return res.status(404).json({ message: 'Tenant not found' });
+    }
+
     // Find active bookings for the given tenantId
     const activeBookings = await ParkingBooking.find({
       tenant: tenantId,
       status: 'Active',
-    }).populate('parkingSpace', 'name'); // Populate the parkingSpace field with its name (or other desired fields)
+    }).populate('parkingSpace') // Populate the parkingSpace field with its name (or other desired fields)
 
+    console.log(activeBookings);
     res.json(activeBookings);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -129,12 +129,11 @@ const getAllPreviousBookingsByOwner = async (req, res) => {
 };
 
 const getActiveBookingByParkingSpaceId = async (req, res) => {
-  const { parkingSpaceId } = req.body; // Get parkingSpaceId from request body
-
+  const spaceId = req.query.spaceId; // Get spaceId from request body
   try {
-    // Find active booking for the given parkingSpaceId
+    // Find active booking for the given spaceId
     const activeBooking = await ParkingBooking.findOne({
-      parkingSpace: parkingSpaceId,
+      parkingSpace: spaceId,
       status: 'Active',
     }).populate({
       path: 'tenant',
