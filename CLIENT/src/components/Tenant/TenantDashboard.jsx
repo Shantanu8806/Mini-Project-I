@@ -4,6 +4,8 @@ import mapboxgl from 'mapbox-gl';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import MapboxDirections from '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions';
+import '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css';
 const TenantDashboard = ({ logged, user, setUser, setLogged }) => {
   const navigate = useNavigate();
   const [mapboxToken, setMapboxToken] = useState('');
@@ -91,11 +93,14 @@ const TenantDashboard = ({ logged, user, setUser, setLogged }) => {
     fetchLocationAndParkingSpaces();
   }, [logged, user, tenantId, navigate]);
 
-  useEffect(() => {
-    if (!mapboxToken || !userCoordinates) {
+  useEffect(() => {  
+    
+    const mapboxReady = mapboxToken && userCoordinates;
+  
+    if (!mapboxReady) {
       return;
     }
-
+  
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v11',
@@ -103,22 +108,55 @@ const TenantDashboard = ({ logged, user, setUser, setLogged }) => {
       zoom: 12,
       accessToken: mapboxToken,
     });
-
-    new mapboxgl.Marker({ color: 'blue' })
-      .setLngLat([userCoordinates.longitude, userCoordinates.latitude])
-      .addTo(map);
-
-    parkingSpaces.forEach((space) => {
-      const marker = new mapboxgl.Marker({ color: 'red' })
-        .setLngLat([space.longitude, space.latitude])
-        .setPopup(new mapboxgl.Popup().setHTML(`<h3>${space.name}</h3><p>${space.description}</p>`))
+  
+    map.on('style.load', () => {
+      // Add sources and layers here
+      if (activeBooking) {
+        activeBooking.forEach((booking) => {
+          new mapboxgl.Marker({ color: 'green' })
+            .setLngLat([booking.parkingSpace.longitude, booking.parkingSpace.latitude])
+            .addTo(map);
+        });
+      }
+  
+      new mapboxgl.Marker({ color: 'blue' })
+        .setLngLat([userCoordinates.longitude, userCoordinates.latitude])
         .addTo(map);
+  
+      parkingSpaces.forEach((space) => {
+        const marker = new mapboxgl.Marker({ color: 'red' })
+          .setLngLat([space.longitude, space.latitude])
+          .setPopup(new mapboxgl.Popup().setHTML(`<h3>${space.name}</h3><p>${space.description}</p>`))
+          .addTo(map);
+  
+        marker.getElement().addEventListener('click', () => handleParkingSpaceClick(space));
 
-      marker.getElement().addEventListener('click', () => handleParkingSpaceClick(space));
+        if (userCoordinates && activeBooking.length > 0) {
+          const startCoords = [userCoordinates.longitude, userCoordinates.latitude];
+          const endCoords = [activeBooking[0].parkingSpace.longitude, activeBooking[0].parkingSpace.latitude];
+    
+          // Create a Mapbox Directions object
+          const directions = new MapboxDirections({
+            accessToken: mapboxToken,
+            unit: 'metric',
+            profile: 'mapbox/walking', // You can change this to 'mapbox/driving' for driving directions
+            controls: {
+              inputs: true,
+              instructions: true,
+            },
+          });
+    
+          // Add the directions control to the map
+          map.addControl(directions, 'top-left');
+    
+          // Set the origin and destination for the route
+          directions.setOrigin(startCoords);
+          directions.setDestination(endCoords);
+        }
+      });
     });
-
     return () => map.remove();
-  }, [userCoordinates, parkingSpaces, mapboxToken]);
+  }, [userCoordinates, mapboxToken, parkingSpaces, activeBooking]);
 
   const handleParkingSpaceClick = async (parkingSpace) => {
     try {
