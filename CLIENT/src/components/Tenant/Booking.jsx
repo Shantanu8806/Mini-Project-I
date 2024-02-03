@@ -220,6 +220,7 @@ const Booking = ({ logged, user, setUser, setLogged }) => {
   
       const { data: { key } } = await axios.get("http://localhost:4000/api/v1/booking/getRazorpayKey");
       const bookingDataString = JSON.stringify({
+        bookingCost,
         tenantId,
         parkingSpaceId: spaceId,
         typeofBooking: selectedBookingType,
