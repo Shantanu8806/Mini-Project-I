@@ -17,70 +17,45 @@ const parkingBookingSchema = new mongoose.Schema({
     enum: ['daily', 'weekly', 'monthly', 'hourly'],
     required: true,
   },
-  startTime: {
-    type: Date, // For daily, weekly, and monthly bookings, this will store the date and time
-    required: true,
-  },
-  endTime: {
-    type: Date, // For daily, weekly, and monthly bookings, this will store the date and time
-    required: true,
-    validate: {
-      validator: function(value) {
-        // Validate that endTime is greater than or equal to startTime
-        return value >= this.startTime;
-      },
-      message: 'End time must be equal to or after start time',
-    },
-  },
-  startHour: {
-    type: String, // For hourly bookings, this will store the start time in 12-hour clock format (HH:MM AM/PM)
-    validate: {
-      validator: function(value) {
-        // Validate that startHour is a valid time in 12-hour clock format (HH:MM AM/PM)
-        return /^\d{1,2}:\d{2} (AM|PM)$/i.test(value);
-      },
-      message: 'Invalid start time format. Please use HH:MM AM/PM format',
-    },
-  },
-  endHour: {
-    type: String, // For hourly bookings, this will store the end time in 12-hour clock format (HH:MM AM/PM)
-    validate: {
-      validator: function(value) {
-        // Validate that endHour is a valid time in 12-hour clock format (HH:MM AM/PM)
-        return /^\d{1,2}:\d{2} (AM|PM)$/i.test(value);
-      },
-      message: 'Invalid end time format. Please use HH:MM AM/PM format',
-    },
-    validate: {
-      validator: function(value) {
-        // Validate that endHour is strictly greater than startHour
-        if (this.startHour) {
-          const startTime = parseTimeString(this.startHour);
-          const endTime = parseTimeString(value);
-          return endTime > startTime;
-        }
-        return true; // If startHour is not set, skip this validation
-      },
-      message: 'End time must be after start time',
-    },
-  },
   status: {
     type: String,
-    enum: ['Pending', 'Approved', 'Cancelled'],
-    default: 'Pending',
+    enum: ['Active', 'Expired'],
+    default: 'Active',
   },
-  paymentStatus: {
-    type: String,
-    enum: ['Pending', 'Approved', 'Rejected'],
-    default: 'Pending',
+  amountPaid:{
+    type:Number,
+    required:true
+  },
+  paymentId: {
+    type: String, // Razorpay payment ID
+    required: true,
+  },
+  totalTimeInHours: {
+    type: Number, // Duration in hours until which the booking is valid
+    required: true,
+  },
+  totalTimeExpiresAt: {
+    type: Date, // Timestamp indicating when the booking will expire
+    required: true,
   },
 }, { timestamps: true }); // Add timestamps for createdAt and updatedAt
 
-function parseTimeString(timeString) {
-  const [time, period] = timeString.split(' ');
-  const [hours, minutes] = time.split(':').map(Number);
-  return period.toLowerCase() === 'pm' ? hours + 12 + minutes / 60 : hours + minutes / 60;
-}
+// Set up a middleware to automatically set status to 'Expired' once totalTimeExpiresAt is reached
+parkingBookingSchema.pre('save', async function (next) {
+  if (Date.now() >= this.totalTimeExpiresAt) {
+    this.status = 'Expired';
+
+    // Update the parking space occupancy status and occupant
+    const parkingSpace = await mongoose.model('ParkingSpace').findById(this.parkingSpace);
+    if (parkingSpace) {
+      parkingSpace.isOccupied = false;
+      parkingSpace.occupant = null;
+      await parkingSpace.save();
+    }
+  }
+  next();
+});
+
 
 // Create and export the ParkingBooking model
 const ParkingBooking = mongoose.model('ParkingBooking', parkingBookingSchema);
